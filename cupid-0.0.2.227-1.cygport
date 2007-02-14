@@ -1,0 +1,5 @@
+SVN_REV=${PVP[3]}
+inherit gnome2 svn
+
+DESCRIPTION="GNOME GStreamer video capture utility"
+HOMEPAGE="http://ronald.bitfreak.net/cupid.php"

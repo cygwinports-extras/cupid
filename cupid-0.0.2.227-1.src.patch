@@ -1,0 +1,75 @@
+diff -urN -x CYGWIN-PATCHES -x 'aclocal.m4*' -x ltmain.sh -x 'config.*' -x depcomp -x install-sh -x missing -x mkinstalldirs -x autom4te.cache -x '*compile' -x Makefile.in.in -x 'intltool*.in' -x 'xml-i18n-*.in' -x '*.pyc' -x '*.mo' -x '*.gmo' -x ABOUT-NLS -x Makevars.template -x COPYING -x INSTALL -x mdate-sh -x '*.orig' -x '*.rej' -x '*~' -x '*.temp' -x texinfo.tex -x ylwrap -x Makefile.in -x makefile.in -x configure -x gnome-doc-utils.make -x gnome-doc-utils.m4 -x intltool.m4 -x omf.make -x xmldocs.make origsrc/cupid/configure.ac src/cupid/configure.ac
+--- origsrc/cupid/configure.ac	2007-02-14 08:59:57.000000000 -0600
++++ src/cupid/configure.ac	2007-02-14 09:22:15.642963900 -0600
+@@ -1,6 +1,6 @@
+ dnl for this code, plz blame http://developer.gnome.org/dotplan/porting/ar01s05.html
+ AC_INIT(cupid, 0.0.2)
+-GST_REC_IS_RELEASE="no"
++GST_REC_IS_RELEASE="yes"
+ AC_CONFIG_SRCDIR(src/main.c)
+ AM_INIT_AUTOMAKE(cupid, ${PACKAGE_VERSION})
+ 
+diff -urN -x CYGWIN-PATCHES -x 'aclocal.m4*' -x ltmain.sh -x 'config.*' -x depcomp -x install-sh -x missing -x mkinstalldirs -x autom4te.cache -x '*compile' -x Makefile.in.in -x 'intltool*.in' -x 'xml-i18n-*.in' -x '*.pyc' -x '*.mo' -x '*.gmo' -x ABOUT-NLS -x Makevars.template -x COPYING -x INSTALL -x mdate-sh -x '*.orig' -x '*.rej' -x '*~' -x '*.temp' -x texinfo.tex -x ylwrap -x Makefile.in -x makefile.in -x configure -x gnome-doc-utils.make -x gnome-doc-utils.m4 -x intltool.m4 -x omf.make -x xmldocs.make origsrc/cupid/data/Makefile.am src/cupid/data/Makefile.am
+--- origsrc/cupid/data/Makefile.am	2007-02-14 08:59:54.000000000 -0600
++++ src/cupid/data/Makefile.am	2007-02-14 09:58:26.494718400 -0600
+@@ -10,7 +10,7 @@
+ install-schemas:
+ 	GCONF_CONFIG_SOURCE=$(GCONF_SCHEMA_CONFIG_SOURCE) $(GCONFTOOL) --makefile-install-rule $(schema_DATA) || true
+ 
+-install-data-local: install-schemas
++# install-data-local: install-schemas
+ 
+ @INTLTOOL_SCHEMAS_RULE@
+ 
+diff -urN -x CYGWIN-PATCHES -x 'aclocal.m4*' -x ltmain.sh -x 'config.*' -x depcomp -x install-sh -x missing -x mkinstalldirs -x autom4te.cache -x '*compile' -x Makefile.in.in -x 'intltool*.in' -x 'xml-i18n-*.in' -x '*.pyc' -x '*.mo' -x '*.gmo' -x ABOUT-NLS -x Makevars.template -x COPYING -x INSTALL -x mdate-sh -x '*.orig' -x '*.rej' -x '*~' -x '*.temp' -x texinfo.tex -x ylwrap -x Makefile.in -x makefile.in -x configure -x gnome-doc-utils.make -x gnome-doc-utils.m4 -x intltool.m4 -x omf.make -x xmldocs.make origsrc/cupid/src/Makefile.am src/cupid/src/Makefile.am
+--- origsrc/cupid/src/Makefile.am	2007-02-14 08:59:53.000000000 -0600
++++ src/cupid/src/Makefile.am	2007-02-14 09:01:27.807127000 -0600
+@@ -31,9 +31,7 @@
+ 	-DICON_DIR=\""$(datadir)/pixmaps"\"
+ 
+ cupid_LDADD = \
+-	gst/libgstrecelements.la
+-
+-cupid_LDFLAGS = \
++	gst/libgstrecelements.la \
+ 	$(GLIB_LIBS) \
+ 	$(GCONF_LIBS) \
+ 	$(GNOME_LIBS) \
+diff -urN -x CYGWIN-PATCHES -x 'aclocal.m4*' -x ltmain.sh -x 'config.*' -x depcomp -x install-sh -x missing -x mkinstalldirs -x autom4te.cache -x '*compile' -x Makefile.in.in -x 'intltool*.in' -x 'xml-i18n-*.in' -x '*.pyc' -x '*.mo' -x '*.gmo' -x ABOUT-NLS -x Makevars.template -x COPYING -x INSTALL -x mdate-sh -x '*.orig' -x '*.rej' -x '*~' -x '*.temp' -x texinfo.tex -x ylwrap -x Makefile.in -x makefile.in -x configure -x gnome-doc-utils.make -x gnome-doc-utils.m4 -x intltool.m4 -x omf.make -x xmldocs.make origsrc/cupid/src/sliders.c src/cupid/src/sliders.c
+--- origsrc/cupid/src/sliders.c	2007-02-14 08:59:52.000000000 -0600
++++ src/cupid/src/sliders.c	2007-02-14 09:53:29.570207100 -0600
+@@ -35,6 +35,34 @@
+ #include "sliders.h"
+ #include "stock.h"
+ 
++#include <ctype.h>
++
++/* koders.com strcasestr.c 
++ * FIXME: #ifndef HAVE_STRCASESTR
++ */
++#ifdef __CYGWIN__
++char *
++strcasestr (char *haystack, char *needle)
++{
++	char *p, *startn = 0, *np = 0;
++
++	for (p = haystack; *p; p++) {
++		if (np) {
++			if (toupper(*p) == toupper(*np)) {
++				if (!*++np)
++					return startn;
++			} else
++				np = 0;
++		} else if (toupper(*p) == toupper(*needle)) {
++			np = needle + 1;
++			startn = p;
++		}
++	}
++
++	return 0;
++}
++#endif
++
+ typedef struct _GstRecSlidersColorBalanceChannel
+ {
+   GstColorBalance *balance;
